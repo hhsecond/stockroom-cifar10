@@ -10,17 +10,8 @@ from tqdm import tqdm
 
 
 def imshow(img):
-    # img = img / 2 + 0.5
     plt.imshow(np.transpose(img, (1, 2, 0)))
     plt.show()
-
-
-def normalize(img):
-    img = img.float()
-    mean = torch.tensor([0.485, 0.456, 0.406]).view(-1, 1, 1)
-    std = torch.tensor([0.229, 0.224, 0.225]).view(-1, 1, 1)
-    img = img.sub(mean).div(std).float()
-    return img
 
 
 class Net(nn.Module):
@@ -47,7 +38,7 @@ class Net(nn.Module):
 stock = StockRoom()
 imgcol = stock.data['cifar10-train-image']
 lblcol = stock.data['cifar10-train-label']
-imshow(imgcol[11])
+# imshow(imgcol[11])
 
 
 lr = 0.001
@@ -59,9 +50,6 @@ dloader = DataLoader(dset, batch_size=64)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=lr, momentum=momentum)
 
-
-
-stock = StockRoom(write=True)
 
 
 for epoch in range(2):
@@ -83,10 +71,10 @@ for epoch in range(2):
             running_loss = 0.0
             p.set_description('[epcoh: %d, iteration: %d] loss: %.6f' %(epoch + 1, i + 1, current_loss))
             if current_loss < best_loss:
-                stock.experiment['lr'] = lr
-                stock.experiment['momentum'] = momentum
-                stock.model['cifarmodel'] = net.state_dict()
-                stock.commit(f"Experiment with better result. Loss={best_loss}")
+                with stock.enable_write():
+                    stock.experiment['lr'] = lr
+                    stock.experiment['momentum'] = momentum
+                    stock.model['cifarmodel'] = net.state_dict()
                 best_loss = current_loss
-
+print(stock.model.keys())
 print('Finished Training')
